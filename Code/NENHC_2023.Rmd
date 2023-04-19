@@ -1,0 +1,60 @@
+---
+title: "Northeast Natural History Conference"
+output: html_notebook
+---
+
+R code for generating figure about camera trap data accumulation for 2023 presenation at Northeaset Natural History Conference, co-authored with Brett Ford.
+
+Goal: Illustrate the huge amount of data genereated by camera trapping that needs to be managed.
+
+Set things up
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(here)
+
+```
+
+Now pull in data
+```{r}
+pics<-read.csv(here("Data", "picture_data.csv"))
+```
+
+This data set is a rough approximation of all of the camera trapping images I have collected since 2019, for demonstration purposes only. There may be a little bit of duplication in counting, and there may be images that have not been counted.
+
+Let's summarise to plot
+
+```{r}
+pic_summary<-pics %>% group_by(Year) %>% summarise(
+  num_photos = sum(Photos)
+)
+```
+Now create a cumulative column
+```{r}
+pic_summary<- pic_summary %>% mutate(
+  cum_photos = cumsum(num_photos)
+)
+```
+Great!
+
+Now plot
+
+```{r}
+ggplot(pic_summary, aes(Year, cum_photos))+
+  geom_point(size = 4)+
+  geom_line(size = 1.5)+
+ expand_limits(y = c(55000, 95000))+
+  scale_y_continuous(labels = scales::comma)+ #prevents scientific notation
+  labs(y = "Cumulative number of photos")+
+  theme(
+    axis.text = element_text(size = 12, color = "black"),
+    axis.title = element_text(size = 14, color = "black")
+    )
+```
+Now save file
+
+```{r}
+ggsave(here("Data", "pics_over_time.png"), width = 6, height = 4)
+```
+
+
